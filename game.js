@@ -61,7 +61,6 @@ function drawSkyBackground() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-// 敵のクラス
 class Enemy {
   constructor(type) {
     this.x = canvas.width;
@@ -71,17 +70,13 @@ class Enemy {
     this.health = 6;
     this.type = type;
     this.angle = 0;
+    this.radius = enemySize / 2; // 円形当たり判定用の半径
     this.shootCooldown = 0;
-    this.radius = enemySize / 2;
     
-    // pause-move用の新しいプロパティ
-    this.initialSpeed = 3;
-    this.currentSpeed = this.initialSpeed;
+    // pause-moveタイプ用の変数
+    this.speed = 3; // 初期速度
     this.accelerationTimer = 0;
-    
-    // 戦闘機タイプ用のプロパティ
-    this.direction = Math.random() < 0.5 ? 1 : -1; // 上下の初期方向
-    this.verticalSpeed = 2;
+    this.accelerated = false;
   }
 
   update() {
@@ -90,55 +85,42 @@ class Enemy {
         // 直線的に左に移動
         this.x -= 3;
         break;
-      
+
       case 'circle':
         // 円を描くように移動
         this.x -= 3;
         this.y += Math.sin(this.angle) * 2;
         this.angle += 0.05;
         break;
-      
+
       case 'zigzag':
         // ジグザグに移動
         this.x -= 3;
         this.y += Math.sin(this.angle) * 5;
         this.angle += 0.1;
         break;
-      
+
       case 'shooter':
         // 直線的に移動しながら弾を発射
         this.x -= 3;
         if (this.shootCooldown <= 0) {
           this.shoot();
-          this.shootCooldown = 100;
+          this.shootCooldown = 100; // 発射クールダウン
         } else {
           this.shootCooldown--;
         }
         break;
-      
+
       case 'pause-move':
-        // 1.5秒後に速度が2倍になる
-        this.accelerationTimer++;
-        if (this.accelerationTimer === 90) { // 60FPSを想定して90フレーム = 1.5秒
-          this.currentSpeed = this.initialSpeed * 2;
+        // 直進し、1.5秒後に速度が2倍になる
+        if (!this.accelerated) {
+          this.accelerationTimer++;
+          if (this.accelerationTimer > 90) { // 1.5秒後（60FPSと仮定）
+            this.speed *= 2; // 速度を2倍に
+            this.accelerated = true;
+          }
         }
-        this.x -= this.currentSpeed;
-        break;
-      
-      case 'fighter':
-        // 戦闘機らしい動き
-        this.x -= 4; // 左に移動
-        this.y += this.direction * this.verticalSpeed; // 上下に移動
-        
-        // 画面端に達したら方向転換
-        if (this.y <= 0 || this.y + this.height >= canvas.height) {
-          this.direction *= -1;
-        }
-        
-        // ランダムで方向転換
-        if (Math.random() < 0.02) {
-          this.direction *= -1;
-        }
+        this.x -= this.speed;
         break;
     }
 
@@ -149,10 +131,12 @@ class Enemy {
   }
 
   shoot() {
+    // 敵が弾を発射する関数
     enemyBullets.push(new Bullet(this.x, this.y + this.height / 2, -7, 'red'));
   }
 
   draw() {
+    // 敵を描画する関数
     ctx.drawImage(enemyImage, this.x, this.y, this.width, this.height);
   }
 }
@@ -179,7 +163,7 @@ class Bullet {
 
 // 敵をランダム生成
 function spawnEnemy() {
-  const types = ['circle', 'straight', 'zigzag', 'shooter', 'pause-move', 'fighter'];
+  const types = ['circle', 'straight', 'zigzag', 'shooter', 'pause-move',];
   const type = types[Math.floor(Math.random() * types.length)];
   enemies.push(new Enemy(type));
 }
