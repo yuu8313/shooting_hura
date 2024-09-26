@@ -78,35 +78,39 @@ class Enemy {
   }
 
   update() {
-    if (this.type === 'pause-move' && !this.movePause) {
-      this.pauseTimer++;
-      if (this.pauseTimer > 100) {
-        this.movePause = true;
-        this.pauseTimer = 0;
+    if (this.type === 'pause-move') {
+      if (!this.movePause) {
+        this.pauseTimer++;
+        if (this.pauseTimer > 100) {
+          this.movePause = true;
+          this.pauseTimer = 0;
+        }
+      } else {
+        this.x -= 3;
+        this.pauseTimer++;
+        if (this.pauseTimer > 50) {
+          this.movePause = false;
+          this.pauseTimer = 0;
+        }
       }
-    } else if (this.type === 'pause-move' && this.movePause) {
-      this.x -= 3;
-      if (this.pauseTimer > 50) {
-        this.movePause = false;
-      }
-      this.pauseTimer++;
-    } else {
-      this.x -= 3;
-    }
-
-    if (this.type === 'shooter' && this.shootCooldown <= 0) {
-      this.shoot();
-      this.shootCooldown = 100;
     } else if (this.type === 'shooter') {
-      this.shootCooldown--;
-    }
-
-    if (this.type === 'circle') {
+      this.x -= 3;
+      if (this.shootCooldown <= 0) {
+        this.shoot();
+        this.shootCooldown = 100;
+      } else {
+        this.shootCooldown--;
+      }
+    } else if (this.type === 'circle') {
+      this.x -= 3;
       this.y += Math.sin(this.angle) * 2;
       this.angle += 0.05;
     } else if (this.type === 'zigzag') {
+      this.x -= 3;
       this.y += Math.sin(this.angle) * 5;
       this.angle += 0.1;
+    } else {
+      this.x -= 3;
     }
 
     if (this.x + this.width < 0) {
@@ -122,7 +126,6 @@ class Enemy {
     ctx.drawImage(enemyImage, this.x, this.y, this.width, this.height);
   }
 }
-
 // 弾のクラス
 class Bullet {
   constructor(x, y, speed, color = 'yellow') {
